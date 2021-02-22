@@ -1,7 +1,7 @@
 {
   "name": "galactic-forage",
   "version": "1.0.0",
-  "description": "",
+  "description": "Hooks for persistent local state through localForage",
   "main": "index.js",
   "scripts": {
     "lint": "eslint ./src/**",
@@ -16,6 +16,10 @@
   },
   "author": "Baron Willeford",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/baron816/Galactic-Forage.git"
+  },
   "peerDependencies": {
     "localforage": ">1",
     "react": ">16.8"

@@ -52,6 +52,10 @@ export class ForageListener<E extends string> {
     return this.state[key];
   }
 
+  unsubscribe(key: E, subscriber: Subscriber) {
+    this.events.get(key)?.delete(subscriber);
+  }
+
   subscribe(key: E, subscriber: Subscriber) {
     if (this.events.has(key)) {
       this.events.get(key)!.add(subscriber);
@@ -60,7 +64,7 @@ export class ForageListener<E extends string> {
     }
 
     return () => {
-      this.events.get(key)?.delete(subscriber);
+      this.unsubscribe(key, subscriber);
     };
   }
 
@@ -85,6 +89,10 @@ export class ForageListener<E extends string> {
 }
 
 type Setter<T> = (newVal: T) => void;
+interface KeyListener<T> {
+  subscribe(subscriber: Subscriber): () => void;
+  getValue(): T;
+}
 
 export function makeCreateForage<E extends string>(
   storageListener: ForageListener<E>
@@ -92,7 +100,7 @@ export function makeCreateForage<E extends string>(
   return function createForage<T>(
     key: E,
     defaultValue: T
-  ): [() => [T, Setter<T>], Setter<T>, ForageListener<E>] {
+  ): [() => [T, Setter<T>], Setter<T>, KeyListener<T>] {
     function setVal(newVal: T) {
       storageListener.update(key, newVal);
     }
@@ -109,6 +117,19 @@ export function makeCreateForage<E extends string>(
       return [state, setVal];
     }
 
-    return [useStorage, setVal, storageListener];
+    const keyListener = {
+      subscribe(subscriber: Subscriber) {
+        storageListener.subscribe(key, subscriber);
+
+        return () => {
+          storageListener.unsubscribe(key, subscriber);
+        };
+      },
+      getValue() {
+        return storageListener.getValue(key);
+      },
+    };
+
+    return [useStorage, setVal, keyListener];
   };
 }
